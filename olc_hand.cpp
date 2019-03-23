@@ -8,11 +8,15 @@ PURPOSE: TEST THE HAND TYPED IMPLEMENTATION OF THE OLC
 */
 
 #include "pch.h"
-#include <iostream>
+#include "olc.h"
 
 int main()
 {
-    std::cout << "Hello World!\n"; 
+	for (int i = FG_BLACK; i < BG_WHITE; i++) {
+		COLOR it = static_cast<COLOR>(i);
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), it);
+		std::cout << "yo" << std::endl;
+	}
 }
 
 

@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="olc.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
