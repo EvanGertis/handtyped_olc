@@ -9,11 +9,36 @@ PURPOSE: TEST THE HAND TYPED IMPLEMENTATION OF THE OLC
 
 #include "pch.h"
 #include "olc.h"
+#include "olc_hand.h"
+
+class testEngine : olcConsoleGameEngine
+{
+
+public: 
+	testEngine() {
+		
+	}
+
+	bool OnUserCreate() {
+		return true;
+	}
+
+	bool OnUserUpdate(float fElapsedTime) {
+		
+		return true;
+	}
+
+	bool OnUserDestroy() {
+		
+		return true;
+	}
+};
 
 int main()
 {
-	olcConsoleGameEngine olcge;
-	if (olcge.ConstructConsole(120, 128, 4, 4)) {
+	testEngine te;
+	if (te.ConstructConsole(120, 128, 4, 4)) {
+		te.Start();
 	}
 }
 

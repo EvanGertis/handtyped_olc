@@ -21,6 +21,9 @@
     <ClInclude Include="olc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="olc_hand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

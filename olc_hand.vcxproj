@@ -152,6 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="olc.h" />
+    <ClInclude Include="olc_hand.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>

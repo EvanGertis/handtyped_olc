@@ -208,154 +208,316 @@ public:
 	}
 };
 
-	class olcConsoleGameEngine
-	{
-	public:
-		olcConsoleGameEngine() {
-			m_nScreenWidth = 80;
-			m_nScreenHeight = 30;
+class olcConsoleGameEngine
+{
+public:
+	olcConsoleGameEngine() {
+		m_nScreenWidth = 80;
+		m_nScreenHeight = 30;
 
-			m_hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-			m_hConsoleIn = GetStdHandle(STD_INPUT_HANDLE);
+		m_hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+		m_hConsoleIn = GetStdHandle(STD_INPUT_HANDLE);
 
-			std::memset(m_keyNewState, 0, 256 * sizeof(short));
-			std::memset(m_keyOldState, 0, 256 * sizeof(short));
-			std::memset(m_keys, 0, 256 * sizeof(sKeyState));
+		std::memset(m_keyNewState, 0, 256 * sizeof(short));
+		std::memset(m_keyOldState, 0, 256 * sizeof(short));
+		std::memset(m_keys, 0, 256 * sizeof(sKeyState));
 
-			m_mousePosX = 0;
-			m_mousePosY = 0; 
+		m_mousePosX = 0;
+		m_mousePosY = 0; 
 
-			m_bEnableSound = false;
+		m_bEnableSound = false;
 
-			m_sAppName = L"Default";
+		m_sAppName = L"Default";
 
-		}
+	}
 
-		void EnableSound() {
-			m_bEnableSound = true;
-		}
+	void EnableSound() {
+		m_bEnableSound = true;
+	}
 
-		int ConstructConsole(int width, int height, int fontw, int fonth) {
+	int ConstructConsole(int width, int height, int fontw, int fonth) {
 			
-			//gaurd if the console is invalid.
-			if (m_hConsole == INVALID_HANDLE_VALUE) {
-				return Error(L"Bad Handle");
-			}
-
-			m_nScreenWidth = width;
-			m_nScreenHeight = height;
-
-			m_rectWindow = { 0, 0, 1, 1 };
-			SetConsoleWindowInfo(m_hConsole, TRUE, &m_rectWindow);
-
-			//sets the size of the screen buffer.
-			COORD coord = { (short)m_nScreenWidth, (short)m_nScreenHeight };
-			if (!SetConsoleScreenBufferSize(m_hConsole, coord)) {
-				Error(L"SetConsoleScreenBufferSize");
-			}
-
-			//Assign screen buffer to the console.
-			if (!SetConsoleActiveScreenBuffer(m_hConsole)) {
-				return Error(L"SetConsoleActiveScreenBuffer");
-			}
-
-			//Set the font size so that the screen buffer has been assigned to the console.
-			CONSOLE_FONT_INFOEX cfi;
-			cfi.cbSize = sizeof(cfi);
-			cfi.nFont = 0;
-			cfi.dwFontSize.X = fontw;
-			cfi.dwFontSize.Y = fonth;
-			cfi.FontFamily = FF_DONTCARE;
-			cfi.FontWeight = FW_NORMAL;
-
-			wcscpy_s(cfi.FaceName, L"Consolas");
-			if (!SetCurrentConsoleFontEx(m_hConsole, false, &cfi)) {
-				return Error(L"SetCurrentConsoleFontEx");
-			}
-
-			//Get screen buffer info to chack the maximum allowed window siz.
-			//return erro if exceeded, so the user knows the dimensions are too out of size.
-			CONSOLE_SCREEN_BUFFER_INFO csbi;
-
-			if (!GetConsoleScreenBufferInfo(m_hConsole, &csbi)) {
-				return Error(L"GetConsoleScreenBufferInfo");
-			}
-			if (m_nScreenHeight > csbi.dwMaximumWindowSize.Y) {
-				return Error(L"Screen height or font height is too large");
-			}
-			if (m_nScreenWidth > csbi.dwMaximumWindowSize.X) {
-				return Error(L"Screen width or font width is too large");
-			}
-
-			m_rectWindow = { 0, 0, (short)m_nScreenWidth - 1, (short)m_nScreenHeight - 1 };
-			if (!SetConsoleWindowInfo(m_hConsole, TRUE, &m_rectWindow)) {
-				return Error(L"SetConsoleWindowInfo");
-			}
-
-			//Set flags to allow mouse input.
-			if (!SetConsoleMode(m_hConsoleIn, ENABLE_EXTENDED_FLAGS | ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT)) {
-				return Error(L"SetConsoleMode");
-			}
-
-			//Allocate memory for screen buffer.
-			m_bufScreen = new CHAR_INFO[m_nScreenWidth*m_nScreenHeight];
-
-			SetConsoleCtrlHandler((PHANDLER_ROUTINE)CloseHandler, TRUE);
-			return 1;
-
+		//gaurd if the console is invalid.
+		if (m_hConsole == INVALID_HANDLE_VALUE) {
+			return Error(L"Bad Handle");
 		}
 
-	protected:
-		int Error(const wchar_t *msg) {
-			wchar_t buf[256];
-			FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buf, 256, NULL);
-			SetConsoleActiveScreenBuffer(m_hOriginalConsole);
-			wprintf(L"ERROR: %s\n\t%s\n", msg, buf);
-			return 0;
+		m_nScreenWidth = width;
+		m_nScreenHeight = height;
+
+		m_rectWindow = { 0, 0, 1, 1 };
+		SetConsoleWindowInfo(m_hConsole, TRUE, &m_rectWindow);
+
+		//sets the size of the screen buffer.
+		COORD coord = { (short)m_nScreenWidth, (short)m_nScreenHeight };
+		if (!SetConsoleScreenBufferSize(m_hConsole, coord)) {
+			Error(L"SetConsoleScreenBufferSize");
 		}
 
-		static BOOL CloseHandler(DWORD evt) {
-			if (evt == CTRL_CLOSE_EVENT) {
+		//Assign screen buffer to the console.
+		if (!SetConsoleActiveScreenBuffer(m_hConsole)) {
+			return Error(L"SetConsoleActiveScreenBuffer");
+		}
+
+		//Set the font size so that the screen buffer has been assigned to the console.
+		CONSOLE_FONT_INFOEX cfi;
+		cfi.cbSize = sizeof(cfi);
+		cfi.nFont = 0;
+		cfi.dwFontSize.X = fontw;
+		cfi.dwFontSize.Y = fonth;
+		cfi.FontFamily = FF_DONTCARE;
+		cfi.FontWeight = FW_NORMAL;
+
+		wcscpy_s(cfi.FaceName, L"Consolas");
+		if (!SetCurrentConsoleFontEx(m_hConsole, false, &cfi)) {
+			return Error(L"SetCurrentConsoleFontEx");
+		}
+
+		//Get screen buffer info to chack the maximum allowed window siz.
+		//return erro if exceeded, so the user knows the dimensions are too out of size.
+		CONSOLE_SCREEN_BUFFER_INFO csbi;
+
+		if (!GetConsoleScreenBufferInfo(m_hConsole, &csbi)) {
+			return Error(L"GetConsoleScreenBufferInfo");
+		}
+		if (m_nScreenHeight > csbi.dwMaximumWindowSize.Y) {
+			return Error(L"Screen height or font height is too large");
+		}
+		if (m_nScreenWidth > csbi.dwMaximumWindowSize.X) {
+			return Error(L"Screen width or font width is too large");
+		}
+
+		m_rectWindow = { 0, 0, (short)m_nScreenWidth - 1, (short)m_nScreenHeight - 1 };
+		if (!SetConsoleWindowInfo(m_hConsole, TRUE, &m_rectWindow)) {
+			return Error(L"SetConsoleWindowInfo");
+		}
+
+		//Set flags to allow mouse input.
+		if (!SetConsoleMode(m_hConsoleIn, ENABLE_EXTENDED_FLAGS | ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT)) {
+			return Error(L"SetConsoleMode");
+		}
+
+		//Allocate memory for screen buffer.
+		m_bufScreen = new CHAR_INFO[m_nScreenWidth*m_nScreenHeight];
+
+		SetConsoleCtrlHandler((PHANDLER_ROUTINE)CloseHandler, TRUE);
+		return 1;
+
+	}
+
+	~olcConsoleGameEngine() {
+		SetConsoleActiveScreenBuffer(m_hOriginalConsole);
+		delete[] m_bufScreen;
+	}
+
+	void Start() {
+		//start thread.
+		m_bAtomActive = true;
+		std::thread t = std::thread(&olcConsoleGameEngine::GameThread, this);
+
+		//wait for thread to be exited.
+		t.join();
+	}
+
+private:
+	void GameThread()
+	{
+		if (!OnUserCreate()) {
+			m_bAtomActive = false;
+		}
+/*
+		if (m_bEnableSound) {
+			if (!CreateAudio()) {
 				m_bAtomActive = false;
-
-				//wait for thread to be exited.
-				std::unique_lock<std::mutex> ul(m_muxGame);
-				m_cvGameFinished.wait(ul);
+				m_bEnableSound = false;
 			}
-			return true;
+		}*/
+
+		auto tp1 = std::chrono::system_clock::now();
+		auto tp2 = std::chrono::system_clock::now();
+
+		while (m_bAtomActive) {
+			//Run as fast as possible
+			while (m_bAtomActive) {
+				tp2 = std::chrono::system_clock::now();
+				std::chrono::duration<float> elapsedTime = tp2 - tp1;
+				tp1 = tp2;
+				float fElapsedTime = elapsedTime.count();
+
+				//Handle Keyboard Input.
+				for (int i = 0; i > 256; i++) {
+					m_keyNewState[i] = GetAsyncKeyState(i);
+					m_keys[i].bPressed = false;
+					m_keys[i].bReleased = false;
+
+					if (m_keyNewState[i] != m_keyOldState[i]) {
+						if (m_keyNewState[i] & 0x8000) {
+							m_keys[i].bPressed = !m_keys[i].bHeld;
+							m_keys[i].bHeld = true;
+						}
+						else {
+							m_keys[i].bReleased = true;
+							m_keys[i].bHeld = false;
+						}
+					}
+
+					m_keyOldState[i] = m_keyNewState[i];
+				}
+
+				//Handle Mouse Input.
+				INPUT_RECORD inBuf[32];
+				DWORD events = 0;
+				GetNumberOfConsoleInputEvents(m_hConsoleIn, &events);
+				if (events > 0) {
+					ReadConsoleInput(m_hConsoleIn, inBuf, events, &events);
+				}
+
+				//Handle events such as mouse click and movement.
+				for (DWORD i = 0; i < events; i++) {
+					switch (inBuf[i].EventType) {
+					case FOCUS_EVENT:
+					{
+						m_bConsoleInFocus = inBuf[i].Event.FocusEvent.bSetFocus;
+					}
+					break;
+
+					case MOUSE_EVENT:
+					{
+						switch (inBuf[i].Event.MouseEvent.dwEventFlags) {
+
+						case MOUSE_MOVED:
+						{
+							m_mousePosX = inBuf[i].Event.MouseEvent.dwMousePosition.X;
+							m_mousePosY = inBuf[i].Event.MouseEvent.dwMousePosition.Y;
+						}
+						break;
+
+						case 0:
+						{
+							for (int m = 0; m < 5; m++) {
+								m_mouseNewState[i] = (inBuf[i].Event.MouseEvent.dwButtonState & (1 << m)) > 0;
+							}
+						}
+						break;
+
+						default: 
+							break;
+						}
+					}
+					break;
+
+					default:
+						break;
+
+					}
+				}
+
+				for (int m = 0; m < 5; m++) {
+						
+					m_mouse[m].bPressed = false;
+					m_mouse[m].bReleased = false;
+
+					if (m_mouseNewState[m] != m_mouseOldState[m]) {
+						if (m_mouseNewState[m]) {
+							m_mouse[m].bPressed = true;
+							m_mouse[m].bHeld = true;
+						}
+						else
+						{
+							m_mouse[m].bReleased = true;
+							m_mouse[m].bHeld = false;
+						}
+					}
+					m_mouseOldState[m] = m_mouseNewState[m];
+				}
+
+				if (!OnUserUpdate(fElapsedTime)) {
+					m_bAtomActive = false;
+				}
+
+				//update title and present screen buffer.
+				wchar_t s[256];
+				swprintf_s(s, 256, L"olc console game engine. -%s FPS: %3.2f", m_sAppName.c_str(), 1.0f / fElapsedTime);
+				SetConsoleTitle(s);
+				WriteConsoleOutput(m_hConsole, m_bufScreen, { (short)m_nScreenWidth, (short)m_nScreenHeight }, {0,0}, &m_rectWindow);
+			}
+
+			if (m_bEnableSound) {
+				
+			}
+
+			if (OnUserDestroy) {
+				delete[] m_bufScreen;
+				SetConsoleActiveScreenBuffer(m_hOriginalConsole);
+				m_cvGameFinished.notify_one();
+			}
+			else
+			{
+				m_bAtomActive = true;
+			}
 		}
+	}
 
-	protected:
+public:
 
-		struct sKeyState {
-			bool bPressed;
-			bool bReleased;
-			bool bHeld;
-		} m_keys[256], m_mouse[5]; //these are of type struct sKeyState.
+	//abtract vitruals to be overidden by user.
+	virtual bool OnUserCreate() = 0;
+	virtual bool OnUserUpdate(float fElapsedTime) = 0;
+	virtual bool OnUserDestroy() = 0;
 
-		int m_mousePosX;
-		int m_mousePosY;
 
-	protected:
-		//class member variables.
-		int m_nScreenWidth;
-		int m_nScreenHeight;
-		CHAR_INFO *m_bufScreen;
-		std::wstring m_sAppName;
-		HANDLE m_hOriginalConsole;
-		CONSOLE_SCREEN_BUFFER_INFO m_OriginalConsoleInfo;
-		HANDLE m_hConsole;
-		HANDLE m_hConsoleIn;
-		SMALL_RECT m_rectWindow;
-		short m_keyOldState[256] = { 0 };
-		short m_keyNewState[256] = { 0 };
-		bool m_mouseOldState[5] = { 0 };
-		bool m_bConsoleInFocus = true;
-		bool m_bEnableSound = false;
+protected:
+	int Error(const wchar_t *msg) {
+		wchar_t buf[256];
+		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buf, 256, NULL);
+		SetConsoleActiveScreenBuffer(m_hOriginalConsole);
+		wprintf(L"ERROR: %s\n\t%s\n", msg, buf);
+		return 0;
+	}
 
-		static std::atomic<bool> m_bAtomActive;
-		static std::condition_variable m_cvGameFinished;
-		static std::mutex m_muxGame;
+	static BOOL CloseHandler(DWORD evt) {
+		if (evt == CTRL_CLOSE_EVENT) {
+			m_bAtomActive = false;
+
+			//wait for thread to be exited.
+			std::unique_lock<std::mutex> ul(m_muxGame);
+			m_cvGameFinished.wait(ul);
+		}
+		return true;
+	}
+
+protected:
+
+	struct sKeyState {
+		bool bPressed;
+		bool bReleased;
+		bool bHeld;
+	} m_keys[256], m_mouse[5]; //these are of type struct sKeyState.
+
+	int m_mousePosX;
+	int m_mousePosY;
+
+protected:
+	//class member variables.
+	int m_nScreenWidth;
+	int m_nScreenHeight;
+	CHAR_INFO *m_bufScreen;
+	std::wstring m_sAppName;
+	HANDLE m_hOriginalConsole;
+	CONSOLE_SCREEN_BUFFER_INFO m_OriginalConsoleInfo;
+	HANDLE m_hConsole;
+	HANDLE m_hConsoleIn;
+	SMALL_RECT m_rectWindow;
+	short m_keyOldState[256] = { 0 };
+	short m_keyNewState[256] = { 0 };
+	bool m_mouseOldState[5] = { 0 };
+	bool m_mouseNewState[5] = { 0 };
+	bool m_bConsoleInFocus = true;
+	bool m_bEnableSound = false;
+
+	static std::atomic<bool> m_bAtomActive;
+	static std::condition_variable m_cvGameFinished;
+	static std::mutex m_muxGame;
 };
 
 
