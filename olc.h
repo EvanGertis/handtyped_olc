@@ -305,6 +305,15 @@ public:
 
 	}
 
+	virtual void Draw(int x, int y, short c = 0x2588, short col = 0x000F)
+	{
+		if (x >= 0 && x < m_nScreenWidth && y >= 0 && y < m_nScreenHeight)
+		{
+			m_bufScreen[y * m_nScreenWidth + x].Char.UnicodeChar = c;
+			m_bufScreen[y * m_nScreenWidth + x].Attributes = col;
+		}
+	}
+
 	~olcConsoleGameEngine() {
 		SetConsoleActiveScreenBuffer(m_hOriginalConsole);
 		delete[] m_bufScreen;
@@ -463,7 +472,7 @@ public:
 	//abtract vitruals to be overidden by user.
 	virtual bool OnUserCreate() = 0;
 	virtual bool OnUserUpdate(float fElapsedTime) = 0;
-	virtual bool OnUserDestroy() = 0;
+	virtual bool OnUserDestroy() { return true; }
 
 
 protected:
