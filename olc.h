@@ -299,7 +299,7 @@ public:
 
 		//Allocate memory for screen buffer.
 		m_bufScreen = new CHAR_INFO[m_nScreenWidth*m_nScreenHeight];
-
+		memset(m_bufScreen, 0, sizeof(CHAR_INFO) * m_nScreenWidth * m_nScreenHeight);
 		SetConsoleCtrlHandler((PHANDLER_ROUTINE)CloseHandler, TRUE);
 		return 1;
 
