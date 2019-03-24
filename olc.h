@@ -358,6 +358,14 @@ public:
 		t.join();
 	}
 
+	int ScreenWidth() {
+		return m_nScreenWidth;
+	}
+
+	int ScreenHeight() {
+		return m_nScreenHeight;
+	}
+
 private:
 	void GameThread()
 	{
