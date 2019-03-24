@@ -11,19 +11,19 @@ PURPOSE: TEST THE HAND TYPED IMPLEMENTATION OF THE OLC
 #include "olc.h"
 #include "olc_hand.h"
 
-class testEngine : olcConsoleGameEngine
+class testEngine : public olcConsoleGameEngine
 {
 
 public: 
 	testEngine() {
-		
+		m_sAppName = L"Game Engine";
 	}
 
-	bool OnUserCreate() {
+	virtual bool OnUserCreate() {
 		return true;
 	}
 
-	bool OnUserUpdate(float fElapsedTime) {
+	virtual bool OnUserUpdate(float fElapsedTime) {
 		
 		return true;
 	}

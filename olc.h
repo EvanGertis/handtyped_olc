@@ -446,7 +446,7 @@ private:
 				
 			}
 
-			if (OnUserDestroy) {
+			if (OnUserDestroy()) {
 				delete[] m_bufScreen;
 				SetConsoleActiveScreenBuffer(m_hOriginalConsole);
 				m_cvGameFinished.notify_one();
