@@ -21,28 +21,14 @@ public:
 
 	virtual bool OnUserCreate() {
 
-		for (int i = 0; i < 20; i++)
-		{
-			for ( int j = 0; j < 20; j++)
-			{
-				Draw(i, j, PIXEL_SOLID, FG_WHITE);
-			}
-
-		}
+		Fill(0, 0, 50, 50, PIXEL_SOLID, FG_WHITE);
 
 		return true;
 	}
 
 	virtual bool OnUserUpdate(float fElapsedTime) {
 
-		for (int i = 0; i < 20; i++)
-		{
-			for (int j = 0; j < 20; j++)
-			{
-				Draw( (int)fElapsedTime % 100, j, PIXEL_SOLID, FG_WHITE);
-			}
-
-		}
+		
 		
 		return true;
 	}

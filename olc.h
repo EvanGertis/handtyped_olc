@@ -314,6 +314,36 @@ public:
 		}
 	}
 
+	void Fill(int x1, int y1, int x2, int y2, short c = 0x2588, short col = 0x000F) {
+		Clip(x1, y1);
+		Clip(x2, y2);
+		for (int x = x1; x < x2; x++)
+		{
+			for (int y = y1; y < y2; y++)
+			{
+				Draw(x, y, c, col);
+			}
+		}
+	}
+
+	void Clip(int &x, int &y) {
+		if (x < 0) {
+			x = 0;
+		}
+
+		if (x >= m_nScreenWidth) {
+			x = m_nScreenWidth;
+		}
+
+		if (y < 0) {
+			y = 0;
+		}
+
+		if (y >= m_nScreenHeight) {
+			y = m_nScreenHeight;
+		}
+	}
+
 	~olcConsoleGameEngine() {
 		SetConsoleActiveScreenBuffer(m_hOriginalConsole);
 		delete[] m_bufScreen;
