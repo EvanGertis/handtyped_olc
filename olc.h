@@ -90,7 +90,7 @@ private:
 		nHeight = h;
 		m_Glyphs = new short[w*h];
 		m_Colors = new short[w*h];
-		
+
 		for (int i = 0; i < w*h; i++) {
 			m_Glyphs[i] = L' ';
 			m_Colors[i] = FG_BLACK;
@@ -206,9 +206,11 @@ public:
 			return true;
 		}
 	}
+};
 
 	class olcConsoleGameEngine
 	{
+	public:
 		olcConsoleGameEngine() {
 			m_nScreenWidth = 80;
 			m_nScreenHeight = 30;
@@ -229,13 +231,107 @@ public:
 
 		}
 
+		void EnableSound() {
+			m_bEnableSound = true;
+		}
+
+		int ConstructConsole(int width, int height, int fontw, int fonth) {
+			
+			//gaurd if the console is invalid.
+			if (m_hConsole == INVALID_HANDLE_VALUE) {
+				return Error(L"Bad Handle");
+			}
+
+			m_nScreenWidth = width;
+			m_nScreenHeight = height;
+
+			m_rectWindow = { 0, 0, 1, 1 };
+			SetConsoleWindowInfo(m_hConsole, TRUE, &m_rectWindow);
+
+			//sets the size of the screen buffer.
+			COORD coord = { (short)m_nScreenWidth, (short)m_nScreenHeight };
+			if (!SetConsoleScreenBufferSize(m_hConsole, coord)) {
+				Error(L"SetConsoleScreenBufferSize");
+			}
+
+			//Assign screen buffer to the console.
+			if (!SetConsoleActiveScreenBuffer(m_hConsole)) {
+				return Error(L"SetConsoleActiveScreenBuffer");
+			}
+
+			//Set the font size so that the screen buffer has been assigned to the console.
+			CONSOLE_FONT_INFOEX cfi;
+			cfi.cbSize = sizeof(cfi);
+			cfi.nFont = 0;
+			cfi.dwFontSize.X = fontw;
+			cfi.dwFontSize.Y = fonth;
+			cfi.FontFamily = FF_DONTCARE;
+			cfi.FontWeight = FW_NORMAL;
+
+			wcscpy_s(cfi.FaceName, L"Consolas");
+			if (!SetCurrentConsoleFontEx(m_hConsole, false, &cfi)) {
+				return Error(L"SetCurrentConsoleFontEx");
+			}
+
+			//Get screen buffer info to chack the maximum allowed window siz.
+			//return erro if exceeded, so the user knows the dimensions are too out of size.
+			CONSOLE_SCREEN_BUFFER_INFO csbi;
+
+			if (!GetConsoleScreenBufferInfo(m_hConsole, &csbi)) {
+				return Error(L"GetConsoleScreenBufferInfo");
+			}
+			if (m_nScreenHeight > csbi.dwMaximumWindowSize.Y) {
+				return Error(L"Screen height or font height is too large");
+			}
+			if (m_nScreenWidth > csbi.dwMaximumWindowSize.X) {
+				return Error(L"Screen width or font width is too large");
+			}
+
+			m_rectWindow = { 0, 0, (short)m_nScreenWidth - 1, (short)m_nScreenHeight - 1 };
+			if (!SetConsoleWindowInfo(m_hConsole, TRUE, &m_rectWindow)) {
+				return Error(L"SetConsoleWindowInfo");
+			}
+
+			//Set flags to allow mouse input.
+			if (!SetConsoleMode(m_hConsoleIn, ENABLE_EXTENDED_FLAGS | ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT)) {
+				return Error(L"SetConsoleMode");
+			}
+
+			//Allocate memory for screen buffer.
+			m_bufScreen = new CHAR_INFO[m_nScreenWidth*m_nScreenHeight];
+
+			SetConsoleCtrlHandler((PHANDLER_ROUTINE)CloseHandler, TRUE);
+			return 1;
+
+		}
+
+	protected:
+		int Error(const wchar_t *msg) {
+			wchar_t buf[256];
+			FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buf, 256, NULL);
+			SetConsoleActiveScreenBuffer(m_hOriginalConsole);
+			wprintf(L"ERROR: %s\n\t%s\n", msg, buf);
+			return 0;
+		}
+
+		static BOOL CloseHandler(DWORD evt) {
+			if (evt == CTRL_CLOSE_EVENT) {
+				m_bAtomActive = false;
+
+				//wait for thread to be exited.
+				std::unique_lock<std::mutex> ul(m_muxGame);
+				m_cvGameFinished.wait(ul);
+			}
+			return true;
+		}
+
 	protected:
 
 		struct sKeyState {
 			bool bPressed;
 			bool bReleased;
 			bool bHeld;
-		} m_keys[256], m_mouse[5];
+		} m_keys[256], m_mouse[5]; //these are of type struct sKeyState.
 
 		int m_mousePosX;
 		int m_mousePosY;
@@ -258,6 +354,11 @@ public:
 		bool m_bEnableSound = false;
 
 		static std::atomic<bool> m_bAtomActive;
-	};
+		static std::condition_variable m_cvGameFinished;
+		static std::mutex m_muxGame;
 };
 
+
+std::atomic<bool> olcConsoleGameEngine::m_bAtomActive(false);
+std::condition_variable olcConsoleGameEngine::m_cvGameFinished;
+std::mutex olcConsoleGameEngine::m_muxGame;

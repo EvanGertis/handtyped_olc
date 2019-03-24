@@ -12,17 +12,8 @@ PURPOSE: TEST THE HAND TYPED IMPLEMENTATION OF THE OLC
 
 int main()
 {
-	for (int i = FG_BLACK; i < BG_WHITE; i++) {
-		COLOR it = static_cast<COLOR>(i);
-		for (int j = PIXEL_SOLID; j < PIXEL_QUATER; j++)
-		{
-			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), it);
-
-			PIXEL_TYPE jt = static_cast<PIXEL_TYPE>(j);
-
-			SetPixel(GetDC(GetConsoleWindow()), jt, jt, it);
-			std::cout << "Test" << std::endl;
-		}
+	olcConsoleGameEngine olcge;
+	if (olcge.ConstructConsole(120, 128, 4, 4)) {
 	}
 }
 
