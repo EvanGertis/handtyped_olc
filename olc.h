@@ -11,6 +11,9 @@
 #include <chrono>
 #include <vector>
 #include <list>
+#include <thread>
+#include <atomic>
+#include <condition_variable>
 
 enum COLOR
 {
@@ -203,4 +206,58 @@ public:
 			return true;
 		}
 	}
+
+	class olcConsoleGameEngine
+	{
+		olcConsoleGameEngine() {
+			m_nScreenWidth = 80;
+			m_nScreenHeight = 30;
+
+			m_hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+			m_hConsoleIn = GetStdHandle(STD_INPUT_HANDLE);
+
+			std::memset(m_keyNewState, 0, 256 * sizeof(short));
+			std::memset(m_keyOldState, 0, 256 * sizeof(short));
+			std::memset(m_keys, 0, 256 * sizeof(sKeyState));
+
+			m_mousePosX = 0;
+			m_mousePosY = 0; 
+
+			m_bEnableSound = false;
+
+			m_sAppName = L"Default";
+
+		}
+
+	protected:
+
+		struct sKeyState {
+			bool bPressed;
+			bool bReleased;
+			bool bHeld;
+		} m_keys[256], m_mouse[5];
+
+		int m_mousePosX;
+		int m_mousePosY;
+
+	protected:
+		//class member variables.
+		int m_nScreenWidth;
+		int m_nScreenHeight;
+		CHAR_INFO *m_bufScreen;
+		std::wstring m_sAppName;
+		HANDLE m_hOriginalConsole;
+		CONSOLE_SCREEN_BUFFER_INFO m_OriginalConsoleInfo;
+		HANDLE m_hConsole;
+		HANDLE m_hConsoleIn;
+		SMALL_RECT m_rectWindow;
+		short m_keyOldState[256] = { 0 };
+		short m_keyNewState[256] = { 0 };
+		bool m_mouseOldState[5] = { 0 };
+		bool m_bConsoleInFocus = true;
+		bool m_bEnableSound = false;
+
+		static std::atomic<bool> m_bAtomActive;
+	};
 };
+
